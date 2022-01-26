@@ -10,7 +10,6 @@ from oauthlib.oauth2 import (
 
 from .exceptions import DnsApiException
 from .models import (
-    parse_record,
     NICService,
     NICZone,
     DNSRecord,
@@ -22,12 +21,6 @@ from .models import (
     MXRecord,
     TXTRecord,
 )
-
-"""
-requrements.txt:
-- aiohttp-oauthlib
-oauthlib-3.1.1
-"""
 
 _RECORD_CLASSES_CAN_ADD = (
     ARecord,
@@ -92,10 +85,10 @@ class NICApi:
 
         self._session = None
 
-        # Setup
-        self._setup()
+    def _connect(self):
+        if self._session is not None:
+            return
 
-    def _setup(self):
         self._session = OAuth2Session(
             client=LegacyApplicationClient(
                 client_id=self._client_id, scope=self._scope
@@ -135,18 +128,14 @@ class NICApi:
         data_none_except: bool = False,
         **kwargs
     ) -> ET.Element:
-        response = await self._request(*args, **kwargs)
-        status, error, data = self._parse_answer(await response.text())
+        body = await self._request(*args, **kwargs)
+        status, error, data = self._parse_answer(body)
         if status != "success":
             raise DnsApiException(error)
         if data_as_list:
             data = [] if data is None else data
         if data_none_except and data is None:
-            raise DnsApiException(
-                "Can't find <data> in response: {}".format(
-                    await response.text()
-                )
-            )
+            raise DnsApiException(f"Can't find <data> in response: {body}")
         return data
 
     async def _request(
@@ -155,7 +144,10 @@ class NICApi:
         rpath: str,
         check_status: bool = False,
         **kwargs
-    ) -> aiohttp.ClientResponse:
+    ) -> str:
+        """Return body as string (xml)"""
+        self._connect()
+
         response = await self._session.request(
             method, self._url_create(rpath), timeout=self._timeout, **kwargs)
 
@@ -163,8 +155,7 @@ class NICApi:
         if check_status and not response.ok:
             raise DnsApiException(
                 "HTTP Error. Body: {}".format(await response.text()))
-        
-        return response
+        return await response.text()
    
     def _parse_answer(
             self, body: str
@@ -177,7 +168,7 @@ class NICApi:
         Returns:
             (xml.etree.ElementTree.Element) <data> tag of response.
         """
-        root = ET.fromstring(body)
+        root = ET.fromstring(body.strip())
         data = root.find('data')
 
         status = root.find('status')
@@ -194,6 +185,8 @@ class NICApi:
 
     async def get_token(self):
         """Get token"""
+        self._connect()
+
         try:
             token = await self._session.fetch_token(
                 token_url=self.url_token,
@@ -238,9 +231,9 @@ class NICApi:
         """
         service = self._default_service if service is None else service
         zone = self._default_zone if zone is None else zone
-        response = await self._request(
+        body = await self._request(
             "GET", f"/services/{service}/zones/{zone}", check_status=True)
-        return await response.text()
+        return body
 
     async def records(
         self, service: str = None, zone: str = None
@@ -258,37 +251,35 @@ class NICApi:
             data_none_except=True
         )
         _zone = data.find('zone')
-        assert _zone.attrib['name'] == zone
-        return [parse_record(rr) for rr in _zone.findall('rr')]
+        if _zone.attrib['name'] != zone:
+            raise DnsApiException("Zone don't equal")
+        return [DNSRecord.create(rr) for rr in _zone.findall('rr')]
 
-    async def add_record(self, records, service: str = None, zone: str = None):
-        """Adds records."""
+    async def add_record(
+        self, records: list, service: str = None, zone: str = None
+    ):
+        """Adds records"""
         service = self._default_service if service is None else service
         zone = self._default_zone if zone is None else zone
         _records = list(records) if self._is_sequence(records) else [records]
 
-        rr_list = []  # for XML representations
+        rr_list = ET.Element("rr-list")  # for XML representations
 
         for record in _records:
             if not isinstance(record, _RECORD_CLASSES_CAN_ADD):
                 raise TypeError('{} is not a valid DNS record!'.format(record))
-            record_xml = record.to_xml()
-            rr_list.append(record_xml)
+            rr_list.append(record.to_xml())
             self.logger.debug('Prepared for addition new record on service %s'
-                              ' zone %s: %s', service, zone, record_xml)
+                              ' zone %s: %s', service, zone, record)
 
-        _xml = textwrap.dedent(
-            """\
-            <?xml version="1.0" encoding="UTF-8" ?>
-            <request><rr-list>
-            {}
-            </rr-list></request>"""
-        ).format('\n'.join(rr_list))
+        # Generate XML
+        root = ET.Element("request")
+        root.append(rr_list)
 
         await self._request_data(
             "PUT",
             f"/services/{service}/zones/{zone}/records",
-            data=_xml
+            data=ET.tostring(root, encoding="UTF-8", xml_declaration=True)
         )
         self.logger.debug('Successfully added %s records', len(rr_list))
 

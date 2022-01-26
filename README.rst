@@ -27,12 +27,13 @@ https://www.nic.ru/manager/oauth.cgi?step=oauth.app_register
 
 .. code:: python
 
-    from nic_api import DnsApi
+    import asyncio
+    from nic_api import NICApi
 
     def print_token(token: dict):
         print("Token:", token)
 
-    api = DnsApi(
+    api = NICApi(
         client_id = "---",
         client_secret = "---",
         username = "---/NIC-D",
@@ -42,7 +43,10 @@ https://www.nic.ru/manager/oauth.cgi?step=oauth.app_register
     )
 
     # First you need to get token
-    api.get_token()
+    async def main():
+        await api.get_token()
+
+    asyncio.run(main)
 
 Get token
 ~~~~~~~~~
@@ -52,7 +56,10 @@ Call the ``get_token()`` method:
 .. code:: python
 
     # First you need to get token
-    api.get_token()
+    async def main():
+        await api.get_token()
+
+    asyncio.run(main)
 
 Now you are ready to use the API.
 
@@ -75,7 +82,10 @@ service ``MY_SERVICE``:
 
 .. code:: python
 
-    api.zones('MY_SERVICE')
+    async def main():
+        await api.zones('MY_SERVICE')
+
+    asyncio.run(main)
 
 **Always check if the zone has any uncommitted changes to it before
 making any modifications - your commit will apply other changes too!**
@@ -88,7 +98,10 @@ zone name:
 
 .. code:: python
 
-    api.records('MY_SERIVCE', 'example.com')
+    async def main():
+        await api.records('MY_SERIVCE', 'example.com')
+
+    asyncio.run(main)
 
 Creating a record
 ~~~~~~~~~~~~~~~~~
@@ -98,15 +111,18 @@ subclasses, i.e. ``ARecord``:
 
 .. code:: python
 
-    from nic_api.models import ARecord
-    record_www = ARecord(name='www', a='8.8.8.8', ttl=3600)
+    import aionic.models as nic_models
+    record_www = nic_models.ARecord(name='www', a='8.8.8.8', ttl=3600)
 
 Add this record to the zone and commit the changes:
 
 .. code:: python
 
-    api.add_record(record_www, 'MY_SERVICE', 'example.com')
-    api.commit('MY_SERVICE', 'example.com')
+    async def main():
+        await api.add_record(record_www, 'MY_SERVICE', 'example.com')
+        await api.commit('MY_SERVICE', 'example.com')
+
+    asyncio.run(main)
 
 Deleting a record
 ~~~~~~~~~~~~~~~~~
@@ -117,7 +133,10 @@ Every record in the zone has an unique ID, and it's accessible via
 
 .. code:: python
 
-    api.delete_record(100000, 'MY_SERVICE', 'example.com')
-    api.commit('MY_SERVICE', 'example.com')
+    async def main():
+        await api.delete_record(10, 'MY_SERVICE', 'example.com')
+        await api.commit('MY_SERVICE', 'example.com')
+
+    asyncio.run(main)
 
 Do not forget to always commit the changes!
