@@ -1,18 +1,18 @@
 NIC.RU API Python library
 ==========================
 
-The package is the library for the API of Russian DNS registrar Ru-Center
-(a.k.a. NIC.RU). It provides classes for managing DNS services,
+The package is the async library for the API of Russian DNS registrator
+Ru-Center (a.k.a. NIC.RU). It provides classes for managing DNS services,
 zones and records.
 
-This base on: https://github.com/andr1an/nic-api
+This project bases on: https://github.com/andr1an/nic-api
 
 Installation
 ------------
 
 Using ``pip``::
 
-    pip install git+https://github.com/shizacat/aionic
+    pip install aionic
 
 Usage
 -----
