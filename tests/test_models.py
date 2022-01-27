@@ -58,6 +58,10 @@ class TestModels(unittest.TestCase):
     def test_ARecord(self):
         with self.subTest("create from ET"):
             obj = models.ARecord.from_xml(ET.fromstring(DataFixture.record_a))
+            self.assertEqual(obj.id, DataFixture.record_a_answer["id"])
+            self.assertEqual(obj.name, DataFixture.record_a_answer["name"])
+            self.assertEqual(obj.ttl, DataFixture.record_a_answer["ttl"])
+            self.assertEqual(obj.a, DataFixture.record_a_answer["a"])
             print("ARecord", obj)
         
         with self.subTest("To xml"):

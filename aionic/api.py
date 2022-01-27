@@ -9,25 +9,7 @@ from oauthlib.oauth2 import (
 )
 
 from .exceptions import DnsApiException
-from .models import (
-    NICService,
-    NICZone,
-    DNSRecord,
-    SOARecord,
-    NSRecord,
-    ARecord,
-    AAAARecord,
-    CNAMERecord,
-    MXRecord,
-    TXTRecord,
-)
-
-_RECORD_CLASSES_CAN_ADD = (
-    ARecord,
-    AAAARecord,
-    CNAMERecord,
-    TXTRecord,
-)
+from .models import NICService, NICZone, DNSRecord
 
 
 class NICApi:
@@ -266,8 +248,6 @@ class NICApi:
         rr_list = ET.Element("rr-list")  # for XML representations
 
         for record in _records:
-            if not isinstance(record, _RECORD_CLASSES_CAN_ADD):
-                raise TypeError('{} is not a valid DNS record!'.format(record))
             rr_list.append(record.to_xml())
             self.logger.debug('Prepared for addition new record on service %s'
                               ' zone %s: %s', service, zone, record)

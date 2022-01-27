@@ -124,13 +124,13 @@ class DNSRecord:
         id_:int = None,
         name: str = "",
         idn_name: str = None,
-        ttl: str = None,
+        ttl: Union[str, int] = None,
         **kwargs
     ):
         self.id = int(id_) if id_ is not None else None
         self.name = name
         self.idn_name = idn_name if idn_name is not None else name
-        self.ttl = ttl
+        self.ttl = str(ttl)
 
         if self.id == 0:
             raise ValueError('Invalid record ID!')
@@ -142,7 +142,7 @@ class DNSRecord:
         root = ElementTree.Element(base_name)
 
         if self.id is not None:
-            root.attrib['id'] = self.id
+            root.attrib['id'] = str(self.id)
 
         _name = ElementTree.SubElement(root, 'name',)
         _name.text = self.name
@@ -171,7 +171,7 @@ class DNSRecord:
     @classmethod
     def _get_kwargs(cls, obj: ET.Element) -> dict:
         kwargs = {}
-        kwargs["id"] = obj.attrib.get("id")
+        kwargs["id_"] = obj.attrib.get("id")
         kwargs["name"] = obj.find("name").text
         if obj.find("idn-name") is not None:
             kwargs["idn_name"] = obj.find("idn-name").text

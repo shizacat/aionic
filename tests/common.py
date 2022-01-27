@@ -80,10 +80,16 @@ class DataFixture:
     """
 
     record_a = """
-        <rr>
+        <rr id="106">
             <name>name</name>
-            <ttl>ttl</ttl>
+            <ttl>200</ttl>
             <type>A</type>
             <a>IP</a>
         </rr>
     """
+    record_a_answer = {
+        "id": 106,
+        "name": "name",
+        "ttl": "200",
+        "a": "IP"
+    }
