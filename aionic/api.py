@@ -2,7 +2,6 @@ import logging
 from typing import Callable, List, Tuple, Optional
 from xml.etree import ElementTree as ET
 
-import aiohttp
 from aiohttp_oauthlib import OAuth2Session
 from oauthlib.oauth2 import (
     LegacyApplicationClient, TokenExpiredError, InvalidGrantError
@@ -138,10 +137,10 @@ class NICApi:
             raise DnsApiException(
                 "HTTP Error. Body: {}".format(await response.text()))
         return await response.text()
-   
+
     def _parse_answer(
-            self, body: str
-        ) -> Tuple[str, str, Optional[ET.Element]]:
+        self, body: str
+    ) -> Tuple[str, str, Optional[ET.Element]]:
         """Gets <data> from XML response.
 
         Arguments:

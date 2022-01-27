@@ -1,9 +1,8 @@
 """nic_api - classes for entities returned by API."""
 
-import sys
 from xml.etree import ElementTree
 from xml.etree import ElementTree as ET
-from typing import Optional, Union, Any, _GenericAlias, List, Tuple
+from typing import Optional, Union, Any
 
 
 class GenericXML:
@@ -121,7 +120,7 @@ class DNSRecord:
 
     def __init__(
         self,
-        id_:int = None,
+        id_: int = None,
         name: str = "",
         idn_name: str = None,
         ttl: Union[str, int] = None,
@@ -137,7 +136,7 @@ class DNSRecord:
 
     def __repr__(self):
         return repr(vars(self))
-    
+
     def to_xml(self, base_name: str = "rr") -> ET.Element:
         root = ElementTree.Element(base_name)
 
@@ -167,7 +166,7 @@ class DNSRecord:
             raise ValueError(f"Record is not a {cls.type_name} record!")
 
         return cls(**cls._get_kwargs(obj))
-    
+
     @classmethod
     def _get_kwargs(cls, obj: ET.Element) -> dict:
         kwargs = {}
@@ -178,14 +177,14 @@ class DNSRecord:
         if obj.find("ttl") is not None:
             kwargs["ttl"] = obj.find("ttl").text
         return kwargs
-    
+
     @classmethod
     def _find_field(cls, obj: ET.Element, path: str, key: str) -> Any:
         el = obj.find(f"{path}{key}")
         if el is None:
             raise ValueError(f"The field {key} not found")
         return el
-    
+
     @classmethod
     def create(cls, obj: ET.Element) -> "DNSRecord":
         """Parses record XML representation to one of DNSRecord subclasses"""
@@ -232,7 +231,7 @@ class SOARecord(DNSRecord):
                 cls._find_field(obj, "soa/", field)
             )
         return kwargs
-    
+
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
@@ -267,7 +266,7 @@ class NSRecord(DNSRecord):
         kwargs = super()._get_kwargs(obj)
         kwargs["ns_name"] = cls._find_field(obj, "ns/", "name").text
         return kwargs
-    
+
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
@@ -316,7 +315,7 @@ class AAAARecord(DNSRecord):
         kwargs = super()._get_kwargs(obj)
         kwargs["aaaa"] = cls._find_field(obj, "", "aaaa").text
         return kwargs
-    
+
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
@@ -340,7 +339,7 @@ class CNAMERecord(DNSRecord):
         kwargs = super()._get_kwargs(obj)
         kwargs["cname"] = cls._find_field(obj, "cname/", "name").text
         return kwargs
-    
+
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
@@ -360,14 +359,14 @@ class MXRecord(DNSRecord):
         super().__init__(**kwargs)
         self.preference = int(preference)
         self.exchange = exchange
-    
+
     @classmethod
     def _get_kwargs(cls, obj: ET.Element) -> dict:
         kwargs = super()._get_kwargs(obj)
         kwargs["preference"] = cls._find_field(obj, "mx/", "preference").text
         kwargs["exchange"] = cls._find_field(obj, "mx/exchange/", "name").text
         return kwargs
-    
+
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
@@ -399,7 +398,7 @@ class TXTRecord(DNSRecord):
             kwargs["txt"] = txt[0]
 
         return kwargs
-    
+
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
@@ -434,7 +433,7 @@ class SRVRecord(DNSRecord):
         kwargs["target"] = cls._find_field(obj, "srv/target/", "name").text
 
         return kwargs
-    
+
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
@@ -466,7 +465,7 @@ class PTRRecord(DNSRecord):
         kwargs = super()._get_kwargs(obj)
         kwargs["ptr_name"] = cls._find_field(obj, "ptr/", "name").text
         return kwargs
-    
+
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 

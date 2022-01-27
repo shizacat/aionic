@@ -1,1 +1,1 @@
-from .api import NICApi
+from .api import NICApi  # noqa: F401
