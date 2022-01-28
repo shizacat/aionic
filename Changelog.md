@@ -1,4 +1,6 @@
 ## [Unreleased]
+### Added
+- The code slight has changed. (_is_sequence, _get_service, _get_zone)
 
 ## [1.0.3]
 ### Fixed

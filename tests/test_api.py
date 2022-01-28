@@ -91,3 +91,14 @@ class ApiTest(unittest.IsolatedAsyncioTestCase):
     async def test_api_zonefile(self, req):
         req.return_value = ""
         await self.obj.zonefile("", "")
+
+    def test__is_sequence(self):
+        """Check _is_sequence"""
+        data = [
+            ("str", False),
+            (["test"], True),
+            (("test",), True)
+        ]
+        for x, y in data:
+            r = self.obj._is_sequence(x)
+            assert r == y

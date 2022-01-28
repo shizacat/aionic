@@ -1,5 +1,6 @@
 import logging
-from typing import Callable, List, Tuple, Optional
+import collections
+from typing import Callable, List, Tuple, Optional, Any
 from xml.etree import ElementTree as ET
 
 from aiohttp_oauthlib import OAuth2Session
@@ -88,11 +89,10 @@ class NICApi:
     def url_token(self):
         return f"{self._base_url}/oauth/token"
 
-    def _is_sequence(self, arg):
-        """Returns if argument is list/tuple/etc. or not."""
-        return (not hasattr(arg, 'strip') and
-                hasattr(arg, '__getitem__') or
-                hasattr(arg, '__iter__'))
+    def _is_sequence(self, value: Any) -> bool:
+        if isinstance(value, str):
+            return False
+        return isinstance(value, collections.Sequence)
 
     def _token_updater(self, token: dict):
         self._token = token
@@ -164,6 +164,12 @@ class NICApi:
 
         return status, error.strip(), data
 
+    def _get_service(self, service: str = None) -> Optional[str]:
+        return self._default_service if service is None else service
+
+    def _get_zone(self, zone: str = None) -> Optional[str]:
+        return self._default_zone if zone is None else zone
+
     async def get_token(self):
         """Get token"""
         self._connect()
@@ -196,7 +202,7 @@ class NICApi:
         Returns:
             a list of NICZone objects.
         """
-        service = self._default_service if service is None else service
+        service = self._get_service(service)
         if service is None:
             rpath = "/zones"
         else:
@@ -210,8 +216,7 @@ class NICApi:
         Returns:
             a string with zonefile content.
         """
-        service = self._default_service if service is None else service
-        zone = self._default_zone if zone is None else zone
+        service, zone = self._get_service(service), self._get_zone(zone)
         body = await self._request(
             "GET", f"/services/{service}/zones/{zone}", check_status=True)
         return body
@@ -224,8 +229,7 @@ class NICApi:
         Returns:
             a list with DNSRecord subclasses objects.
         """
-        service = self._default_service if service is None else service
-        zone = self._default_zone if zone is None else zone
+        service, zone = self._get_service(service), self._get_zone(zone)
         data = await self._request_data(
             "GET",
             f"/services/{service}/zones/{zone}/records",
@@ -240,8 +244,7 @@ class NICApi:
         self, records: list, service: str = None, zone: str = None
     ):
         """Adds records"""
-        service = self._default_service if service is None else service
-        zone = self._default_zone if zone is None else zone
+        service, zone = self._get_service(service), self._get_zone(zone)
         _records = list(records) if self._is_sequence(records) else [records]
 
         rr_list = ET.Element("rr-list")  # for XML representations
@@ -265,12 +268,11 @@ class NICApi:
     async def delete_record(
         self,
         record_id: int,
-        service: str = None,
-        zone: str = None
+        service: Optional[str] = None,
+        zone: Optional[str] = None
     ):
-        """Deletes record by id."""
-        service = self._default_service if service is None else service
-        zone = self._default_zone if zone is None else zone
+        """Deletes record by id"""
+        service, zone = self._get_service(service), self._get_zone(zone)
 
         self.logger.debug(
             'Deleting record #%s on service %s zone %s',
@@ -285,17 +287,15 @@ class NICApi:
         self.logger.debug('Record #%s deleted!', record_id)
 
     async def commit(self, service: str = None, zone: str = None):
-        """Commits changes in zone."""
-        service = self._default_service if service is None else service
-        zone = self._default_zone if zone is None else zone
+        """Commits changes in zone"""
+        service, zone = self._get_service(service), self._get_zone(zone)
         await self._request_data(
             "POST", f"/services/{service}/zones/{zone}/commit")
         self.logger.debug('Changes committed!')
 
     async def rollback(self, service: str = None, zone: str = None):
-        """Rolls back changes in zone."""
-        service = self._default_service if service is None else service
-        zone = self._default_zone if zone is None else zone
+        """Rolls back changes in zone"""
+        service, zone = self._get_service(service), self._get_zone(zone)
         await self._request_data(
             "POST", f"/services/{service}/zones/{zone}/rollback")
         self.logger.debug('Changes are rolled back!')
