@@ -66,11 +66,24 @@ class ApiTest(unittest.IsolatedAsyncioTestCase):
     @patch("aionic.NICApi._request", new_callable=AsyncMock)
     async def test_api_add_record(self, req):
         req.return_value = get_xml()
-        await self.obj.add_record(
-            [models.ARecord.from_xml(ET.fromstring(DataFixture.record_a))],
-            "",
-            ""
-        )
+        with self.subTest("list run"):
+            await self.obj.add_record(
+                [models.ARecord.from_xml(ET.fromstring(DataFixture.record_a))],
+                "",
+                ""
+            )
+        with self.subTest("run"):
+            await self.obj.add_record(
+                models.ARecord.from_xml(ET.fromstring(DataFixture.record_a)),
+                "",
+                ""
+            )
+        with self.subTest("tuple run"):
+            await self.obj.add_record(
+                (models.ARecord.from_xml(ET.fromstring(DataFixture.record_a)),),
+                "",
+                ""
+            )
     
     @patch("aionic.NICApi._request", new_callable=AsyncMock)
     async def test_api_delete_record(self, req):
@@ -91,14 +104,3 @@ class ApiTest(unittest.IsolatedAsyncioTestCase):
     async def test_api_zonefile(self, req):
         req.return_value = ""
         await self.obj.zonefile("", "")
-
-    def test__is_sequence(self):
-        """Check _is_sequence"""
-        data = [
-            ("str", False),
-            (["test"], True),
-            (("test",), True)
-        ]
-        for x, y in data:
-            r = self.obj._is_sequence(x)
-            assert r == y

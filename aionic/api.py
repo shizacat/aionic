@@ -1,6 +1,6 @@
 import logging
 import collections
-from typing import Callable, List, Tuple, Optional, Any
+from typing import Callable, List, Tuple, Optional, Any, Union
 from xml.etree import ElementTree as ET
 
 from aiohttp_oauthlib import OAuth2Session
@@ -88,11 +88,6 @@ class NICApi:
     @property
     def url_token(self):
         return f"{self._base_url}/oauth/token"
-
-    def _is_sequence(self, value: Any) -> bool:
-        if isinstance(value, str):
-            return False
-        return isinstance(value, collections.Sequence)
 
     def _token_updater(self, token: dict):
         self._token = token
@@ -241,12 +236,14 @@ class NICApi:
         return [DNSRecord.create(rr) for rr in _zone.findall('rr')]
 
     async def add_record(
-        self, records: list, service: str = None, zone: str = None
+        self,
+        records: Union[DNSRecord, List[DNSRecord], Tuple[DNSRecord]],
+        service: str = None,
+        zone: str = None
     ):
         """Adds records"""
         service, zone = self._get_service(service), self._get_zone(zone)
-        _records = list(records) if self._is_sequence(records) else [records]
-
+        _records = [records] if isinstance(records, DNSRecord) else records
         rr_list = ET.Element("rr-list")  # for XML representations
 
         for record in _records:

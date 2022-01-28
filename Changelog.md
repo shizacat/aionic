@@ -2,6 +2,9 @@
 ### Added
 - The code slight has changed. (_is_sequence, _get_service, _get_zone)
 
+### Removed
+- Method _is_sequence
+
 ## [1.0.3]
 ### Fixed
 - The id field don't had assigned into models, when it created
