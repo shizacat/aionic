@@ -63,15 +63,14 @@ Call the ``get_token()`` method:
 
 Now you are ready to use the API.
 
-If you want, you may to save token to anything (example into file) throuht
-callback ``token_updater`` and then he had used for authorize.
-While the token is valie, you don't need to provide neither username or password
-to access the API.
+A token can be saved anywhere, for example, to a file, using the callback:
+``token_updater``. It also could be used for authorization.
+Neither password nor username is required as long as the token is valid.
 
 Viewing services and DNS zones
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the NIC.RU, DNS zones are located in "services":
+On ``nic.ru`` DNS zones are located in "services":
 
 .. code:: python
 
@@ -87,14 +86,13 @@ service ``MY_SERVICE``:
 
     asyncio.run(main)
 
-**Always check if the zone has any uncommitted changes to it before
-making any modifications - your commit will apply other changes too!**
+**When starting a modification make sure that there is no any uncommited
+changes in the zone, cause they would be applied on commit.**
 
 Getting DNS records
 ~~~~~~~~~~~~~~~~~~~
 
-For viewing or modifying records, you need to specify both service and DNS
-zone name:
+One has to specify both service and DNS zone name to view or modify a record:
 
 .. code:: python
 
