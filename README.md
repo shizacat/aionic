@@ -130,3 +130,12 @@ asyncio.run(main)
 ```
 
 Do not forget to always commit the changes!
+
+## Development
+
+You need to have [uv](https://docs.astral.sh/uv/) installed.
+
+```bash
+# build package
+uv build
+```
