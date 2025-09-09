@@ -1,12 +1,10 @@
 import logging
-import collections
-from typing import Callable, List, Tuple, Optional, Any, Union
+from typing import Callable, List, Tuple, Optional, Union
 from xml.etree import ElementTree as ET
 
 from aiohttp_oauthlib import OAuth2Session
 from oauthlib.oauth2 import (
     LegacyApplicationClient,
-    TokenExpiredError,
     InvalidGrantError,
 )
 
