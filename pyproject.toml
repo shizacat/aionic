@@ -42,4 +42,5 @@ packages = ["aionic"]
 dev = [
     "pytest>=7.0.1",
     "pytest-coverage>=0.0",
+    "flake8>=6.0.0",
 ]
