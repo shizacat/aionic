@@ -1,0 +1,16 @@
+[run]
+source = aionic
+branch = true
+parallel = true
+
+[report]
+show_missing = true
+fail_under = 80
+precision = 2
+
+[html]
+directory = coverage_html
+title = Aionic Test Coverage
+
+[xml]
+output = coverage.xml
