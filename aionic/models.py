@@ -12,12 +12,13 @@ class GenericXML:
     @staticmethod
     def _str2bool(value: str) -> bool:
         """Converts a string to a bool."""
-        return {'true': True, 'false': False}[value.lower()]
+        return {"true": True, "false": False}[value.lower()]
 
 
 # *****************************************************************************
 # Model of service
 #
+
 
 class NICService(GenericXML):
     """Model of service object"""
@@ -33,7 +34,7 @@ class NICService(GenericXML):
         payer: str,
         tariff: str,
         rr_limit: Optional[int] = None,
-        rr_num: Optional[int] = None
+        rr_num: Optional[int] = None,
     ):
         self.admin = admin
         self.domains_limit = int(domains_limit)
@@ -50,15 +51,16 @@ class NICService(GenericXML):
 
     @classmethod
     def from_xml(cls, obj: ET.Element):
-        kwargs = {k.replace('-', '_'): v for k, v in obj.attrib.items()}
-        kwargs['enable'] = cls._str2bool(kwargs['enable'])
-        kwargs['has_primary'] = cls._str2bool(kwargs['has_primary'])
+        kwargs = {k.replace("-", "_"): v for k, v in obj.attrib.items()}
+        kwargs["enable"] = cls._str2bool(kwargs["enable"])
+        kwargs["has_primary"] = cls._str2bool(kwargs["has_primary"])
         return cls(**kwargs)
 
 
 # *****************************************************************************
 # Model of DNS zone
 #
+
 
 class NICZone(GenericXML):
     """Model of zone object."""
@@ -73,7 +75,7 @@ class NICZone(GenericXML):
         idn_name: str,
         name: str,
         payer: str,
-        service: str
+        service: str,
     ):
         self.admin = admin
         self.enable = enable
@@ -87,18 +89,18 @@ class NICZone(GenericXML):
 
     def to_xml(self):
         # TODO: add implementation if needed
-        raise NotImplementedError('Not implemented!')
+        raise NotImplementedError("Not implemented!")
 
     @classmethod
     def from_xml(cls, obj: ET.Element):
-        kwargs = {k.replace('-', '_'): v for k, v in obj.attrib.items()}
+        kwargs = {k.replace("-", "_"): v for k, v in obj.attrib.items()}
 
-        kwargs['id_'] = kwargs['id']
-        kwargs.pop('id')
+        kwargs["id_"] = kwargs["id"]
+        kwargs.pop("id")
 
-        kwargs['enable'] = cls._str2bool(kwargs['enable'])
-        kwargs['has_changes'] = cls._str2bool(kwargs['has_changes'])
-        kwargs['has_primary'] = cls._str2bool(kwargs['has_primary'])
+        kwargs["enable"] = cls._str2bool(kwargs["enable"])
+        kwargs["has_changes"] = cls._str2bool(kwargs["has_changes"])
+        kwargs["has_primary"] = cls._str2bool(kwargs["has_primary"])
         return cls(**kwargs)
 
 
@@ -113,6 +115,7 @@ class NICZone(GenericXML):
 # of the current record.
 # *****************************************************************************
 
+
 class DNSRecord:
     """Base model of NIC.RU DNS record."""
 
@@ -124,7 +127,7 @@ class DNSRecord:
         name: str = "",
         idn_name: str = None,
         ttl: Union[str, int] = None,
-        **kwargs
+        **kwargs,
     ):
         self.id = int(id_) if id_ is not None else None
         self.name = name
@@ -132,7 +135,7 @@ class DNSRecord:
         self.ttl = str(ttl)
 
         if self.id == 0:
-            raise ValueError('Invalid record ID!')
+            raise ValueError("Invalid record ID!")
 
     def __repr__(self):
         return repr(vars(self))
@@ -141,28 +144,31 @@ class DNSRecord:
         root = ElementTree.Element(base_name)
 
         if self.id is not None:
-            root.attrib['id'] = str(self.id)
+            root.attrib["id"] = str(self.id)
 
-        _name = ElementTree.SubElement(root, 'name',)
+        _name = ElementTree.SubElement(
+            root,
+            "name",
+        )
         _name.text = self.name
 
         if self.idn_name is not None:
-            _idn_name = ElementTree.SubElement(root, 'idn-name')
+            _idn_name = ElementTree.SubElement(root, "idn-name")
             _idn_name.text = self.idn_name
 
         if self.ttl is not None:
-            _ttl = ElementTree.SubElement(root, 'ttl')
+            _ttl = ElementTree.SubElement(root, "ttl")
             _ttl.text = str(self.ttl)
 
         if self.type_name is not None:
-            _type = ET.SubElement(root, 'type')
+            _type = ET.SubElement(root, "type")
             _type.text = self.type_name
 
         return root
 
     @classmethod
     def from_xml(cls, obj: ET.Element):
-        if cls.type_name is not None and obj.find('type').text != cls.type_name:
+        if cls.type_name is not None and obj.find("type").text != cls.type_name:
             raise ValueError(f"Record is not a {cls.type_name} record!")
 
         return cls(**cls._get_kwargs(obj))
@@ -188,7 +194,7 @@ class DNSRecord:
     @classmethod
     def create(cls, obj: ET.Element) -> "DNSRecord":
         """Parses record XML representation to one of DNSRecord subclasses"""
-        _type = obj.find('type').text
+        _type = obj.find("type").text
         for subcls in cls.__subclasses__():
             if subcls.type_name == _type:
                 return subcls.from_xml(obj)
@@ -209,7 +215,7 @@ class SOARecord(DNSRecord):
         minimum: int,
         mname: DNSRecord,
         rname: DNSRecord,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.serial = int(serial)
@@ -224,7 +230,7 @@ class SOARecord(DNSRecord):
     def _get_kwargs(cls, obj: ET.Element) -> dict:
         kwargs = super()._get_kwargs(obj)
 
-        for field in ('serial', 'refresh', 'retry', 'expire', 'minimum'):
+        for field in ("serial", "refresh", "retry", "expire", "minimum"):
             kwargs[field] = cls._find_field(obj, "soa/", field).text
         for field in ("mname", "rname"):
             kwargs[field] = DNSRecord.from_xml(
@@ -235,16 +241,16 @@ class SOARecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _soa = ET.SubElement(root, 'soa')
-        _serial = ET.SubElement(_soa, 'serial')
+        _soa = ET.SubElement(root, "soa")
+        _serial = ET.SubElement(_soa, "serial")
         _serial.text = str(self.serial)
-        _refresh = ET.SubElement(_soa, 'refresh')
+        _refresh = ET.SubElement(_soa, "refresh")
         _refresh.text = str(self.refresh)
-        _retry = ET.SubElement(_soa, 'retry')
+        _retry = ET.SubElement(_soa, "retry")
         _retry.text = str(self.retry)
-        _expire = ET.SubElement(_soa, 'expire')
+        _expire = ET.SubElement(_soa, "expire")
         _expire.text = str(self.expire)
-        _minimum = ET.SubElement(_soa, 'minimum')
+        _minimum = ET.SubElement(_soa, "minimum")
         _minimum.text = str(self.minimum)
         _soa.append(self.mname.to_xml("mname"))
         _soa.append(self.rname.to_xml("rname"))
@@ -270,8 +276,8 @@ class NSRecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _ns = ET.SubElement(root, 'ns')
-        _ns_name = ET.SubElement(_ns, 'name')
+        _ns = ET.SubElement(root, "ns")
+        _ns_name = ET.SubElement(_ns, "name")
         _ns_name.text = self.ns_name
 
         return root
@@ -295,7 +301,7 @@ class ARecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _a = ET.SubElement(root, 'a')
+        _a = ET.SubElement(root, "a")
         _a.text = self.a
 
         return root
@@ -319,7 +325,7 @@ class AAAARecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _aaaa = ET.SubElement(root, 'aaaa')
+        _aaaa = ET.SubElement(root, "aaaa")
         _aaaa.text = self.aaaa
 
         return root
@@ -343,8 +349,8 @@ class CNAMERecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _cname = ET.SubElement(root, 'cname')
-        _name = ET.SubElement(_cname, 'name')
+        _cname = ET.SubElement(root, "cname")
+        _name = ET.SubElement(_cname, "name")
         _name.text = self.cname
 
         return root
@@ -370,11 +376,11 @@ class MXRecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _mx = ET.SubElement(root, 'mx')
-        _preference = ET.SubElement(_mx, 'preference')
+        _mx = ET.SubElement(root, "mx")
+        _preference = ET.SubElement(_mx, "preference")
         _preference.text = str(self.preference)
-        _exchange = ET.SubElement(_mx, 'exchange')
-        _name = ET.SubElement(_exchange, 'name')
+        _exchange = ET.SubElement(_mx, "exchange")
+        _name = ET.SubElement(_exchange, "name")
         _name.text = self.exchange
 
         return root
@@ -402,8 +408,8 @@ class TXTRecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _txt = ET.SubElement(root, 'txt')
-        _string = ET.SubElement(_txt, 'string')
+        _txt = ET.SubElement(root, "txt")
+        _string = ET.SubElement(_txt, "string")
         _string.text = self.txt
 
         return root
@@ -437,15 +443,15 @@ class SRVRecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _srv = ET.SubElement(root, 'srv')
-        _priority = ET.SubElement(_srv, 'priority')
+        _srv = ET.SubElement(root, "srv")
+        _priority = ET.SubElement(_srv, "priority")
         _priority.text = str(self.priority)
-        _weight = ET.SubElement(_srv, 'weight')
+        _weight = ET.SubElement(_srv, "weight")
         _weight.text = str(self.weight)
-        _port = ET.SubElement(_srv, 'port')
+        _port = ET.SubElement(_srv, "port")
         _port.text = str(self.port)
-        _target = ET.SubElement(_srv, 'target')
-        _name = ET.SubElement(_target, 'name')
+        _target = ET.SubElement(_srv, "target")
+        _name = ET.SubElement(_target, "name")
         _name.text = self.target
 
         return root
@@ -469,8 +475,8 @@ class PTRRecord(DNSRecord):
     def to_xml(self) -> ET.Element:
         root = super().to_xml()
 
-        _ptr = ET.SubElement(root, 'ptr')
-        _name = ET.SubElement(_ptr, 'name')
+        _ptr = ET.SubElement(root, "ptr")
+        _name = ET.SubElement(_ptr, "name")
         _name.text = self.ptr_name
 
         return root

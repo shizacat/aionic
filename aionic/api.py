@@ -5,7 +5,9 @@ from xml.etree import ElementTree as ET
 
 from aiohttp_oauthlib import OAuth2Session
 from oauthlib.oauth2 import (
-    LegacyApplicationClient, TokenExpiredError, InvalidGrantError
+    LegacyApplicationClient,
+    TokenExpiredError,
+    InvalidGrantError,
 )
 
 from .exceptions import DnsApiException
@@ -102,7 +104,7 @@ class NICApi:
         *args,
         data_as_list: bool = False,
         data_none_except: bool = False,
-        **kwargs
+        **kwargs,
     ) -> ET.Element:
         body = await self._request(*args, **kwargs)
         status, error, data = self._parse_answer(body)
@@ -115,27 +117,23 @@ class NICApi:
         return data
 
     async def _request(
-        self,
-        method: str,
-        rpath: str,
-        check_status: bool = False,
-        **kwargs
+        self, method: str, rpath: str, check_status: bool = False, **kwargs
     ) -> str:
         """Return body as string (xml)"""
         self._connect()
 
         response = await self._session.request(
-            method, self._url_create(rpath), timeout=self._timeout, **kwargs)
+            method, self._url_create(rpath), timeout=self._timeout, **kwargs
+        )
 
         # Check http error
         if check_status and not response.ok:
             raise DnsApiException(
-                "HTTP Error. Body: {}".format(await response.text()))
+                "HTTP Error. Body: {}".format(await response.text())
+            )
         return await response.text()
 
-    def _parse_answer(
-        self, body: str
-    ) -> Tuple[str, str, Optional[ET.Element]]:
+    def _parse_answer(self, body: str) -> Tuple[str, str, Optional[ET.Element]]:
         """Gets <data> from XML response.
 
         Arguments:
@@ -145,17 +143,18 @@ class NICApi:
             (xml.etree.ElementTree.Element) <data> tag of response.
         """
         root = ET.fromstring(body.strip())
-        data = root.find('data')
+        data = root.find("data")
 
-        status = root.find('status')
+        status = root.find("status")
         if status is None:
             raise DnsApiException(f"Can't find <status> in response: {body}")
         status = status.text
 
         error = ""
-        for item in root.findall('errors/error'):
+        for item in root.findall("errors/error"):
             error += " Code: {}. {}".format(
-                item.attrib.get("code", ""), item.text)
+                item.attrib.get("code", ""), item.text
+            )
 
         return status, error.strip(), data
 
@@ -176,7 +175,7 @@ class NICApi:
                 password=self._password,
                 client_id=self._client_id,
                 client_secret=self._client_secret,
-                offline=self._offline
+                offline=self._offline,
             )
         except InvalidGrantError as e:
             raise DnsApiException(str(e))
@@ -213,7 +212,8 @@ class NICApi:
         """
         service, zone = self._get_service(service), self._get_zone(zone)
         body = await self._request(
-            "GET", f"/services/{service}/zones/{zone}", check_status=True)
+            "GET", f"/services/{service}/zones/{zone}", check_status=True
+        )
         return body
 
     async def records(
@@ -228,18 +228,18 @@ class NICApi:
         data = await self._request_data(
             "GET",
             f"/services/{service}/zones/{zone}/records",
-            data_none_except=True
+            data_none_except=True,
         )
-        _zone = data.find('zone')
-        if _zone.attrib['name'] != zone:
+        _zone = data.find("zone")
+        if _zone.attrib["name"] != zone:
             raise DnsApiException("Zone don't equal")
-        return [DNSRecord.create(rr) for rr in _zone.findall('rr')]
+        return [DNSRecord.create(rr) for rr in _zone.findall("rr")]
 
     async def add_record(
         self,
         records: Union[DNSRecord, List[DNSRecord], Tuple[DNSRecord]],
         service: str = None,
-        zone: str = None
+        zone: str = None,
     ):
         """Adds records"""
         service, zone = self._get_service(service), self._get_zone(zone)
@@ -248,8 +248,12 @@ class NICApi:
 
         for record in _records:
             rr_list.append(record.to_xml())
-            self.logger.debug('Prepared for addition new record on service %s'
-                              ' zone %s: %s', service, zone, record)
+            self.logger.debug(
+                "Prepared for addition new record on service %s" " zone %s: %s",
+                service,
+                zone,
+                record,
+            )
 
         # Generate XML
         root = ET.Element("request")
@@ -258,41 +262,44 @@ class NICApi:
         await self._request_data(
             "PUT",
             f"/services/{service}/zones/{zone}/records",
-            data=ET.tostring(root, encoding="UTF-8", xml_declaration=True)
+            data=ET.tostring(root, encoding="UTF-8", xml_declaration=True),
         )
-        self.logger.debug('Successfully added %s records', len(rr_list))
+        self.logger.debug("Successfully added %s records", len(rr_list))
 
     async def delete_record(
         self,
         record_id: int,
         service: Optional[str] = None,
-        zone: Optional[str] = None
+        zone: Optional[str] = None,
     ):
         """Deletes record by id"""
         service, zone = self._get_service(service), self._get_zone(zone)
 
         self.logger.debug(
-            'Deleting record #%s on service %s zone %s',
+            "Deleting record #%s on service %s zone %s",
             record_id,
             service,
-            zone
+            zone,
         )
 
         await self._request_data(
-            "DELETE", f"/services/{service}/zones/{zone}/records/{record_id}")
+            "DELETE", f"/services/{service}/zones/{zone}/records/{record_id}"
+        )
 
-        self.logger.debug('Record #%s deleted!', record_id)
+        self.logger.debug("Record #%s deleted!", record_id)
 
     async def commit(self, service: str = None, zone: str = None):
         """Commits changes in zone"""
         service, zone = self._get_service(service), self._get_zone(zone)
         await self._request_data(
-            "POST", f"/services/{service}/zones/{zone}/commit")
-        self.logger.debug('Changes committed!')
+            "POST", f"/services/{service}/zones/{zone}/commit"
+        )
+        self.logger.debug("Changes committed!")
 
     async def rollback(self, service: str = None, zone: str = None):
         """Rolls back changes in zone"""
         service, zone = self._get_service(service), self._get_zone(zone)
         await self._request_data(
-            "POST", f"/services/{service}/zones/{zone}/rollback")
-        self.logger.debug('Changes are rolled back!')
+            "POST", f"/services/{service}/zones/{zone}/rollback"
+        )
+        self.logger.debug("Changes are rolled back!")
