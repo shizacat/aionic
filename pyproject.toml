@@ -1,6 +1,45 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aionic"
+version = "1.0.3"
+description = "NIC.RU Async API Python library"
+readme = "README.md"
+authors = [
+    {name = "Alexey Matveev"}
 ]
-build-backend = "setuptools.build_meta"
+requires-python = ">=3.6"
+urls = { Homepage = "https://github.com/shizacat/aionic" }
+dependencies = [
+    "oauthlib >= 3.1.1",
+    "aiohttp-oauthlib"
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9"
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "tests",
+]
+include = ["aionic"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["aionic"]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.1",
+    "pytest-coverage>=0.0",
+]

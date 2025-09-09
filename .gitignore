@@ -4,3 +4,5 @@ tmp/*
 dist/*
 *.egg-info
 .DS_Store
+.coverage
+uv.lock
