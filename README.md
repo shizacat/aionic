@@ -138,4 +138,9 @@ You need to have [uv](https://docs.astral.sh/uv/) installed.
 ```bash
 # build package
 uv build
+
+# run tests
+uv venv
+uv sync
+uv run pytest --cov aionic
 ```
