@@ -131,6 +131,10 @@ asyncio.run(main)
 
 Do not forget to always commit the changes!
 
+## Issue Tracker
+
+Found a bug or have a feature request? Please report it on our [GitHub Issues](https://github.com/shizacat/aionic/issues) page.
+
 ## Development
 
 You need to have [uv](https://docs.astral.sh/uv/) installed.
